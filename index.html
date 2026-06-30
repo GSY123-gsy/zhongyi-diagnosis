@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中医诊断学 - 狂病痴笑病例互动教学</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #DAA520;
+            --bg-color: #FDF5E6;
+            --paper-color: #FAF0E6;
+            --ink-color: #2F1B0C;
+            --success-color: #2E8B57;
+            --error-color: #CD5C5C;
+            --border-color: #D2B48C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'SimSun', serif;
+            background: var(--bg-color);
+            color: var(--ink-color);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(218, 165, 32, 0.05) 0%, transparent 50%);
+        }
+
+        .scroll-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
+            z-index: 1000;
+        }
+
+        .scroll-decoration-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        header::before,
+        header::after {
+            content: '❖';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-color);
+            font-size: 24px;
+        }
+
+        header::before {
+            left: 10%;
+        }
+
+        header::after {
+            right: 10%;
+        }
+
+        h1 {
+            font-family: 'ZCOOL XiaoWei', 'KaiTi', serif;
+            font-size: 36px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--secondary-color);
+            letter-spacing: 2px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 25px;
+        }
+
+        @media (max-width: 1100px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-section {
+            background: var(--paper-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+            position: relative;
+        }
+
+        .video-section::before {
+            content: '门诊实录';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            letter-spacing: 2px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 6px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        #courseVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .video-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .play-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .video-overlay p {
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .progress-wrapper {
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .progress-bar-container {
+            position: relative;
+            height: 8px;
+            background: #e0d5c5;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .node-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .node-marker {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: var(--accent-color);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 5;
+            transition: transform 0.2s;
+        }
+
+        .node-marker:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+        }
+
+        .node-marker.completed {
+            background: var(--success-color);
+        }
+
+        .node-marker.active {
+            animation: nodePulse 1.5s infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(218, 165, 32, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(218, 165, 32, 0); }
+        }
+
+        .node-tooltip {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ink-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .node-marker:hover .node-tooltip {
+            opacity: 1;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--secondary-color);
+        }
+
+        .video-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .ctrl-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .ctrl-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .ctrl-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .question-section {
+            margin-top: 25px;
+            min-height: 200px;
+        }
+
+        .question-card {
+            background: var(--paper-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            background: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .question-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .question-type {
+            margin-left: auto;
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .option-item:hover {
+            border-color: var(--accent-color);
+            background: rgba(218, 165, 32, 0.05);
+        }
+
+        .option-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.08);
+        }
+
+        .option-item.correct {
+            border-color: var(--success-color);
+            background: rgba(46, 139, 87, 0.1);
+        }
+
+        .option-item.wrong {
+            border-color: var(--error-color);
+            background: rgba(205, 92, 92, 0.1);
+        }
+
+        .option-label {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--border-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .option-item.selected .option-label {
+            background: var(--primary-color);
+        }
+
+        .option-item.correct .option-label {
+            background: var(--success-color);
+        }
+
+        .option-item.wrong .option-label {
+            background: var(--error-color);
+        }
+
+        .option-text {
+            flex: 1;
+            line-height: 1.6;
+        }
+
+        .fill-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .fill-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .question-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .hint-btn {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .hint-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .submit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .next-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .next-btn:hover {
+            background: #256d42;
+            transform: translateY(-1px);
+        }
+
+        .hint-box {
+            background: #FFF8DC;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 0 6px 6px 0;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .hint-box h5 {
+            color: var(--accent-color);
+            margin-bottom: 8px;
+        }
+
+        .feedback-box {
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 6px;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-box.success {
+            background: #E8F5E9;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .feedback-box.error {
+            background: #FFEBEE;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .feedback-box h5 {
+            margin-bottom: 8px;
+        }
+
+        .feedback-box.success h5 {
+            color: var(--success-color);
+        }
+
+        .feedback-box.error h5 {
+            color: var(--error-color);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: var(--paper-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+        }
+
+        .sidebar-card h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--secondary-color);
+            margin-top: 4px;
+        }
+
+        .ai-panel {
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            min-height: 200px;
+            max-height: 250px;
+        }
+
+        .ai-message {
+            margin-bottom: 12px;
+            animation: fadeIn 0.3s;
+        }
+
+        .ai-message.user {
+            text-align: right;
+        }
+
+        .ai-message .bubble {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .ai-message.ai .bubble {
+            background: #F5F0E8;
+            color: var(--ink-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .ai-message.user .bubble {
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 14px;
+        }
+
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .ai-send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ai-send-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .ai-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .ai-suggestion {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-color);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .ai-suggestion:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.05);
+        }
+
+        .learning-tips ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .learning-tips li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e0d5c5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .learning-tips li:last-child {
+            border-bottom: none;
+        }
+
+        .learning-tips li::before {
+            content: '✦ ';
+            color: var(--accent-color);
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .welcome-screen h2 {
+            font-family: 'ZCOOL XiaoWei', 'KaiTi', serif;
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .welcome-screen p {
+            font-size: 16px;
+            line-height: 2;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-family: 'Noto Serif SC', serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 4px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.3);
+        }
+
+        .result-screen {
+            display: none;
+        }
+
+        .result-screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .medical-record {
+            background: var(--paper-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .medical-record h2 {
+            text-align: center;
+            font-family: 'ZCOOL XiaoWei', 'KaiTi', serif;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            letter-spacing: 4px;
+        }
+
+        .record-section {
+            margin-bottom: 20px;
+        }
+
+        .record-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .record-section p {
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .final-summary {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.08), rgba(218, 165, 32, 0.08));
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .final-summary h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--success-color) var(--score-percent, 0%), #e0d5c5 0);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: var(--paper-color);
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: var(--secondary-color);
+        }
+
+        .node-info {
+            display: flex;
+            gap: 15px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--secondary-color);
+            flex-wrap: wrap;
+        }
+
+        .node-info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .node-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .node-dot.pending {
+            background: var(--accent-color);
+        }
+
+        .node-dot.completed {
+            background: var(--success-color);
+        }
+
+        .xiong-laoshi-comment {
+            background: #FFF8DC;
+            border: 1px dashed var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .xiong-laoshi-comment h4 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .xiong-laoshi-comment p {
+            font-style: italic;
+            line-height: 1.8;
+            color: var(--ink-color);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0e6d6;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-decoration"></div>
+    <div class="scroll-decoration-bottom"></div>
+
+    <div class="container">
+        <header>
+            <h1>中医诊断学 · 狂病痴笑病例</h1>
+            <p class="subtitle">—— 国医大师熊继柏门诊实录 ——</p>
+        </header>
+
+        <div class="main-layout">
+            <div class="left-column">
+                <div class="video-section">
+                    <div class="video-wrapper">
+                        <video id="courseVideo" preload="metadata">
+                            <source src="梁诗淇痴笑.mp4" type="video/mp4">
+                            您的浏览器不支持视频播放
+                        </video>
+                        <div class="video-overlay" id="videoOverlay">
+                            <div class="play-icon">▶</div>
+                            <p>点击播放开始学习</p>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrapper">
+                        <div class="progress-bar-container" id="progressBarContainer">
+                            <div class="progress-fill" id="progressFill"></div>
+                            <div class="node-markers" id="nodeMarkers"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="currentTime">00:00</span>
+                            <span id="duration">00:00</span>
+                        </div>
+                        <div class="node-info">
+                            <div class="node-info-item">
+                                <span class="node-dot pending"></span>
+                                <span>待学习节点</span>
+                            </div>
+                            <div class="node-info-item">
+                                <span class="node-dot completed"></span>
+                                <span>已完成节点</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-controls">
+                        <button class="ctrl-btn" id="playPauseBtn" onclick="togglePlay()">▶ 播放</button>
+                        <button class="ctrl-btn" onclick="seekBy(-10)">⏪ 后退10秒</button>
+                        <button class="ctrl-btn" onclick="seekBy(10)">前进10秒 ⏩</button>
+                        <button class="ctrl-btn" onclick="resetVideo()">↺ 重新开始</button>
+                    </div>
+                </div>
+
+                <div class="question-section" id="questionSection">
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <h2>欢迎来到中医诊断学互动课堂</h2>
+                        <p>
+                            本课程通过国医大师熊继柏的真实门诊视频，<br>
+                            带领你学习"狂病·痰火扰心证"的辨证论治全过程。<br><br>
+                            视频播放过程中会在关键节点暂停，<br>
+                            请你运用所学知识回答问题，<br>
+                            完成后可获得完整的辨证思路和方药解析。
+                        </p>
+                        <button class="start-btn" onclick="startLearning()">开 始 学 习</button>
+                    </div>
+                </div>
+
+                <div class="result-screen" id="resultScreen">
+                    <div class="medical-record">
+                        <h2>✦ 完整医案 ✦</h2>
+                        
+                        <div class="record-section">
+                            <h4>【患者信息】</h4>
+                            <p><strong>性别年龄：</strong>女，11岁</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【主诉】</h4>
+                            <p>躁扰不宁、夜寐不安反复发作5年，加重2天</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【现病史】</h4>
+                            <p>约6岁起病，吵闹不安，躁动，间断服中药可缓解。近2天反复，彻夜不眠，狂躁扰安，大声喊叫，痴笑，精神亢奋。服药后大便日一行，无痰。头皮、皮肤瘙痒，自行剪短头发。</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【舌脉】</h4>
+                            <p>苔薄白腻，脉滑</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【诊断】</h4>
+                            <p><strong>病名：</strong>狂病</p>
+                            <p><strong>证型：</strong>痰火扰心证</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【治法】</h4>
+                            <p>豁痰开窍，泻火逐痰，重镇安神，祛风止痒</p>
+                        </div>
+
+                        <div class="record-section">
+                            <h4>【方药】</h4>
+                            <p>涤痰汤合礞石滚痰丸加减</p>
+                            <p style="margin-top: 8px; padding-left: 20px;">
+                                大黄、黄芩、石菖蒲、远志、陈皮、法半夏、茯神、<br>
+                                枳实、竹茹、胆南星、川贝母、龙齿20g
+                            </p>
+                        </div>
+
+                        <div class="xiong-laoshi-comment">
+                            <h4>🎓 熊老点评</h4>
+                            <p>
+                                "痰火一去，心神自安。龙齿重镇，引浮阳下归，为点睛之笔。<br>
+                                狂病辨治，首当明辨'痰'与'火'之孰轻孰重，本案痰火胶结，势均力敌，<br>
+                                故涤痰与泻火并重，不可偏废。"
+                            </p>
+                        </div>
+
+                        <div class="score-display">
+                            <div class="score-circle" id="scoreCircle">
+                                <div class="score-text">
+                                    <div class="score-number" id="scoreNumber">0</div>
+                                    <div class="score-label">正确率</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="final-summary">
+                            <h4>📚 学习总结</h4>
+                            <p>
+                                本案为<strong>狂病</strong>之<strong>痰火扰心证</strong>，病机为痰浊内生、郁久化火、痰火交结、上扰心神。
+                                治以豁痰开窍、泻火逐痰、重镇安神，兼祛风止痒，方选<strong>涤痰汤合礞石滚痰丸</strong>，加<strong>龙齿20g</strong>重镇安神。
+                                全方化痰、泻火、开窍、安神并举，切中病机。
+                            </p>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button class="start-btn" onclick="restartLearning()">重 新 学 习</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <h3>📊 学习进度</h3>
+                    <div class="progress-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="correctCount">0</div>
+                            <div class="stat-label">答对题数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalCount">0</div>
+                            <div class="stat-label">总题数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="nodeCount">0</div>
+                            <div class="stat-label">完成节点</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="hintCount">0</div>
+                            <div class="stat-label">使用提示</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card ai-panel">
+                    <h3>🤖 AI 导师助手</h3>
+                    <div class="ai-messages" id="aiMessages">
+                        <div class="ai-message ai">
+                            <div class="bubble">
+                                你好！我是AI中医导师。在学习过程中有任何问题，都可以问我哦！
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-input-area">
+                        <input type="text" class="ai-input" id="aiInput" placeholder="输入你的问题..." onkeypress="handleAIKeyPress(event)">
+                        <button class="ai-send-btn" onclick="sendAIMessage()">发送</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-card learning-tips">
+                    <h3>💡 学习提示</h3>
+                    <ul>
+                        <li>注意观察熊老的问诊顺序和技巧</li>
+                        <li>关注四诊信息收集的完整性</li>
+                        <li>思考痰火扰心证的辨证要点</li>
+                        <li>体会重镇安神药的运用时机</li>
+                        <li>学习中医"标本兼顾"的治疗思路</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const videoNodes = [
+            { id: 1, percent: 15, title: '信息采集（一）', questionStart: 0, questionEnd: 4, description: '问诊开始阶段' },
+            { id: 2, percent: 38, title: '信息采集（二）', questionStart: 5, questionEnd: 6, description: '伴随症状询问' },
+            { id: 3, percent: 62, title: '辨证分析', questionStart: 7, questionEnd: 9, description: '舌脉诊察后' },
+            { id: 4, percent: 85, title: '辨病辨证+治法方药', questionStart: 10, questionEnd: 16, description: '诊断处方阶段' }
+        ];
+
+        const questions = [
+            {
+                id: 1,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者起病后最突出的行为异常表现是？',
+                options: [
+                    { label: 'A', text: '沉默寡言，独处一隅' },
+                    { label: 'B', text: '吵闹不安，躁动不宁' },
+                    { label: 'C', text: '强迫洗手，反复检查' },
+                    { label: 'D', text: '刻板动作，反复踱步' },
+                    { label: 'E', text: '违拗抗拒，不遵指令' }
+                ],
+                correct: ['B'],
+                hint: '家属代诉及病历中明确以"吵闹不安、躁动不宁"为首发及核心行为异常。A为抑郁状态，C为强迫障碍，D为刻板行为，E为违拗表现，均与本证不符。'
+            },
+            {
+                id: 2,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者近日睡眠情况是？',
+                options: [
+                    { label: 'A', text: '入睡困难，但尚能睡3-4小时' },
+                    { label: 'B', text: '彻夜不眠，狂躁扰安' },
+                    { label: 'C', text: '多梦易醒，醒后难寐' },
+                    { label: 'D', text: '白天嗜睡，夜间清醒' },
+                    { label: 'E', text: '睡眠呼吸暂停，张口呼吸' }
+                ],
+                correct: ['B'],
+                hint: '家属明确描述"晚上又不睡觉了"，病历记载"彻夜不眠、狂躁扰安"。A为普通失眠，C为多梦易醒，D为昼夜节律颠倒，E为呼吸睡眠障碍，均与本例躁狂不寐的程度不同。'
+            },
+            {
+                id: 3,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者出现的异常言语是？',
+                options: [
+                    { label: 'A', text: '淡漠寡言，闷闷不乐' },
+                    { label: 'B', text: '喃喃自语，精神痴呆' },
+                    { label: 'C', text: '大声喊叫，痴笑不休' },
+                    { label: 'D', text: '烦躁不安，神昏谵妄' },
+                    { label: 'E', text: '突然昏倒，口吐涎沫' }
+                ],
+                correct: ['C'],
+                hint: '病历明确记载"大声喊叫，痴笑"，此为痰火扰神、神不守舍、神志异常之象。A和B为癫病，D为邪热客于心肺，E为痫病。'
+            },
+            {
+                id: 4,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者当前的精神状态是？',
+                options: [
+                    { label: 'A', text: '精神萎靡，嗜卧懒动' },
+                    { label: 'B', text: '精神亢奋，躁动不安' },
+                    { label: 'C', text: '神志恍惚，迷蒙不清' },
+                    { label: 'D', text: '昏不知人，呼之不应' },
+                    { label: 'E', text: '惊恐不安，如人将捕' }
+                ],
+                correct: ['B'],
+                hint: '病历明确"精神亢奋"，与火热内扰的病机相符。A为虚证萎靡，C为神昏前期，D为昏迷重症，E为惊恐伤肾，均与本证有别。'
+            },
+            {
+                id: 5,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者服药后大便情况如何？',
+                options: [
+                    { label: 'A', text: '大便干结，数日一行' },
+                    { label: 'B', text: '大便溏薄，日行数次' },
+                    { label: 'C', text: '服药后大便每日一行' },
+                    { label: 'D', text: '大便带血，颜色鲜红' },
+                    { label: 'E', text: '腹泻如水，清稀无臭' }
+                ],
+                correct: ['C'],
+                hint: '熊老问"大便呢？"家属答"每天都上了"，服药后大便通畅且规律。A为便秘，B为溏泄，D为便血，E为暴泻，均与事实不符。'
+            },
+            {
+                id: 6,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者痰的特点？',
+                options: [
+                    { label: 'A', text: '咳吐黄稠痰，量多' },
+                    { label: 'B', text: '咳吐白稀痰，量少' },
+                    { label: 'C', text: '喉中痰鸣，漉漉有声' },
+                    { label: 'D', text: '口中无痰，未见吐痰' },
+                    { label: 'E', text: '干咳无痰，咽喉干痒' }
+                ],
+                correct: ['D'],
+                hint: '熊老问"口里痰多不多？"家属明确回答"她没有吐痰"。A为热痰，B为寒痰，C为痰鸣，E为燥咳，本例患者虽为痰火证，但痰浊内伏未吐，非咳吐明显。'
+            },
+            {
+                id: 7,
+                type: 'single',
+                typeText: '单选题',
+                question: '患者头部的伴随症状是？',
+                options: [
+                    { label: 'A', text: '头皮瘙痒剧烈，自行剪发' },
+                    { label: 'B', text: '头面浮肿如裹，按之凹陷' },
+                    { label: 'C', text: '头部刺痛固定，痛如锥刺' },
+                    { label: 'D', text: '头痛如裹重坠，昏沉不清' },
+                    { label: 'E', text: '头面未见任何异常改变' }
+                ],
+                correct: ['A'],
+                hint: '病历中明确记载患者有"头皮瘙痒，自行剪发"的表现，此为头部伴随症状。B为水肿，C为瘀血头痛，D为湿浊头痛，E为无异常，均不吻合。'
+            },
+            {
+                id: 8,
+                type: 'single',
+                typeText: '单选题',
+                question: '以下哪项是该患者的舌象表现？',
+                options: [
+                    { label: 'A', text: '舌红苔黄厚腻' },
+                    { label: 'B', text: '舌淡胖大，苔白滑' },
+                    { label: 'C', text: '舌红少苔，有裂纹' },
+                    { label: 'D', text: '苔薄白腻' },
+                    { label: 'E', text: '舌紫暗，有瘀斑瘀点' }
+                ],
+                correct: ['D'],
+                hint: '熊老亲查"舌苔薄白腻"，此为痰浊内阻的典型舌象，此案前期已服清热化痰中药，此时舌象中的热象不显，以事实为准。A为湿热或痰热或食积化热，B为阳虚水泛，C为阴虚，E为瘀血，均不吻合。'
+            },
+            {
+                id: 9,
+                type: 'single',
+                typeText: '单选题',
+                question: '以下哪项是该患者的脉象表现？',
+                options: [
+                    { label: 'A', text: '脉弦数' },
+                    { label: 'B', text: '脉细弱' },
+                    { label: 'C', text: '脉滑' },
+                    { label: 'D', text: '脉沉迟' },
+                    { label: 'E', text: '脉涩' }
+                ],
+                correct: ['C'],
+                hint: '熊老切诊"脉滑"，滑脉主痰饮、食积、实热，与痰火扰心高度吻合。A为肝火，B为气血两虚，D为寒凝，E为瘀血，均不切合。'
+            },
+            {
+                id: 10,
+                type: 'single',
+                typeText: '单选题',
+                question: '此案的主症是？',
+                options: [
+                    { label: 'A', text: '咳嗽咳痰' },
+                    { label: 'B', text: '失眠' },
+                    { label: 'C', text: '皮肤瘙痒' },
+                    { label: 'D', text: '痴笑喊叫、精神亢奋' },
+                    { label: 'E', text: '躁动' }
+                ],
+                correct: ['D'],
+                hint: '主症是最痛苦和此次就诊最要解决的症状（痴笑喊叫、精神亢奋为精神症状）。A为肺系病主诉，不能体现精神异常；E躁动不是最痛苦的。'
+            },
+            {
+                id: 11,
+                type: 'fill',
+                typeText: '填空题',
+                question: '请用规范格式概括该患者的主诉（提示：症状+时间）',
+                correct: ['痴笑、精神亢奋5年加重2天', '精神亢奋5年加重2天', '痴笑5年加重2天', '躁扰不宁5年加重2天', '夜寐不安5年加重2天'],
+                hint: '必须包含"症状+时间"。注意"反复发作"体现了慢性病程，"加重2天"体现了病情反复。"加重2天"可以缺漏，不影响得分；"精神亢奋"可以用失眠、彻夜不眠等替代。参考答案：痴笑、精神亢奋5年，加重2天。'
+            },
+            {
+                id: 12,
+                type: 'single',
+                typeText: '单选题',
+                question: '该患者的中医病名诊断是？',
+                options: [
+                    { label: 'A', text: '郁证' },
+                    { label: 'B', text: '脏躁' },
+                    { label: 'C', text: '狂病' },
+                    { label: 'D', text: '不寐' },
+                    { label: 'E', text: '痫病' }
+                ],
+                correct: ['C'],
+                hint: '狂病以精神亢奋、躁动不宁、喧扰不静、骂詈毁物为主要特征，病性属阳、属实。本案患者彻夜不眠、狂躁扰安、大声喊叫、痴笑、精神亢奋，与狂病之"阳狂"特征完全吻合。郁证以情志抑郁为主；脏躁以悲伤欲哭为特征；不寐以单纯失眠为主症；痫病以突然昏仆、抽搐吐涎为特征。'
+            },
+            {
+                id: 13,
+                type: 'single',
+                typeText: '单选题',
+                question: '下列哪项最准确地概括了本案的核心病机？',
+                options: [
+                    { label: 'A', text: '肝气郁结，横逆犯脾，脾虚生湿' },
+                    { label: 'B', text: '痰浊内生，郁久化火，痰火交结，上扰心神' },
+                    { label: 'C', text: '肾阴亏虚，水不涵木，肝阳上亢' },
+                    { label: 'D', text: '心脾两虚，气血不足，心神失养' },
+                    { label: 'E', text: '外感风热，内扰心神，兼夹湿浊' }
+                ],
+                correct: ['B'],
+                hint: '病程5年，痰浊久郁化火，痰火胶结，直扰心神，是贯穿始终的核心病机链条。A项停留在气郁湿困阶段，未及化火；C为阴虚阳亢（多见于中老年高血压）；D为虚证失养（多见于久病体弱）；E为外感新病，均不贴切。'
+            },
+            {
+                id: 14,
+                type: 'single',
+                typeText: '单选题',
+                question: '该患者的证型是？',
+                options: [
+                    { label: 'A', text: '肝火上炎证' },
+                    { label: 'B', text: '痰火扰心证' },
+                    { label: 'C', text: '心肾不交证' },
+                    { label: 'D', text: '瘀血阻窍证' },
+                    { label: 'E', text: '胆郁痰扰证' }
+                ],
+                correct: ['B'],
+                hint: '痰浊与火热交结，上扰心神，即为痰火扰心。肝火上炎以头痛目赤、胁痛易怒为主，无痰浊见症；心肾不交为虚证，以心烦不寐、腰酸梦遗为特征；瘀血阻窍以头痛如刺、健忘为主；胆郁痰扰多见胆怯易惊、烦闷不宁，狂躁程度远逊于本案。'
+            },
+            {
+                id: 15,
+                type: 'multiple',
+                typeText: '多选题',
+                question: '此患者你认为可用的治法？（多选）',
+                options: [
+                    { label: 'A', text: '豁痰开窍' },
+                    { label: 'B', text: '泻火逐痰' },
+                    { label: 'C', text: '重镇安神' },
+                    { label: 'D', text: '祛风止痒' },
+                    { label: 'E', text: '滋阴降火' },
+                    { label: 'F', text: '益气养血' }
+                ],
+                correct: ['A', 'B', 'C', 'D'],
+                hint: '本案为实火痰热，治当"攻"法——化痰、泻火、重镇、止痒并举。E（滋阴降火）用于阴虚火旺，F（益气养血）用于虚证，均为补法，于本例痰火实证大忌。祛风止痒（D）为皮肤瘙痒之兼症而设，体现中医"标本兼顾"之特色。'
+            },
+            {
+                id: 16,
+                type: 'single',
+                typeText: '单选题',
+                question: '本案可用的方，你觉得最适宜的是？',
+                options: [
+                    { label: 'A', text: '温胆汤' },
+                    { label: 'B', text: '涤痰汤 + 礞石滚痰丸' },
+                    { label: 'C', text: '黄连温胆汤' },
+                    { label: 'D', text: '酸枣仁汤' },
+                    { label: 'E', text: '天王补心丹' }
+                ],
+                correct: ['B'],
+                hint: '涤痰汤（半夏、胆星、橘红、枳实、茯苓、人参、石菖蒲、竹茹、甘草）豁痰开窍，礞石滚痰丸（礞石、沉香、黄芩、大黄）泻火逐痰，二方合用，痰火并治，为治疗狂病痰火实证的代表性配伍。温胆汤化痰力弱，且无泻火之功；黄连温胆汤清热有余而逐痰不足；酸枣仁汤、天王补心丹均为虚证而设，于痰火实证不适用。'
+            },
+            {
+                id: 17,
+                type: 'single',
+                typeText: '单选题',
+                question: '熊老在原方基础上加用了一味重镇安神药，它是？',
+                options: [
+                    { label: 'A', text: '龙骨 30g' },
+                    { label: 'B', text: '牡蛎 30g' },
+                    { label: 'C', text: '龙齿 20g' },
+                    { label: 'D', text: '磁石 30g' },
+                    { label: 'E', text: '琥珀 6g' }
+                ],
+                correct: ['C'],
+                hint: '熊老处方中明确"龙齿20g"，取其重镇安神、定惊之效。《本经逢原》云龙齿"入心经，镇心安魂"，直入心经，镇降浮越之火，为治疗狂躁不寐的点睛之笔。龙骨偏于敛涩止遗，牡蛎偏于软坚散结，磁石偏于纳气定喘，琥珀偏于化瘀利水，均非本案首选。'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        let hintUsed = 0;
+        let completedNodes = 0;
+        let currentNodeIndex = -1;
+        let isVideoStarted = false;
+        let selectedAnswers = [];
+        let isAnswered = false;
+
+        const video = document.getElementById('courseVideo');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const progressFill = document.getElementById('progressFill');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const nodeMarkers = document.getElementById('nodeMarkers');
+        const questionSection = document.getElementById('questionSection');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const resultScreen = document.getElementById('resultScreen');
+
+        video.addEventListener('loadedmetadata', function() {
+            document.getElementById('duration').textContent = formatTime(video.duration);
+            initNodeMarkers();
+        });
+
+        video.addEventListener('timeupdate', function() {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = percent + '%';
+            document.getElementById('currentTime').textContent = formatTime(video.currentTime);
+            checkVideoNodes();
+        });
+
+        video.addEventListener('ended', function() {
+            if (currentQuestionIndex >= questions.length) {
+                showResult();
+            }
+        });
+
+        videoOverlay.addEventListener('click', function() {
+            if (isVideoStarted) {
+                video.play();
+            } else {
+                startLearning();
+            }
+        });
+
+        function getNodeTime(node) {
+            if (node.time !== undefined) return node.time;
+            return (node.percent / 100) * video.duration;
+        }
+
+        function initNodeMarkers() {
+            nodeMarkers.innerHTML = '';
+            videoNodes.forEach((node, index) => {
+                const marker = document.createElement('div');
+                const percent = node.percent !== undefined ? node.percent : (node.time / video.duration) * 100;
+                marker.className = 'node-marker';
+                marker.style.left = percent + '%';
+                marker.dataset.nodeId = node.id;
+                marker.innerHTML = `<span class="node-tooltip">${node.title}</span>`;
+                marker.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    video.currentTime = getNodeTime(node);
+                });
+                nodeMarkers.appendChild(marker);
+            });
+        }
+
+        function checkVideoNodes() {
+            for (let i = 0; i < videoNodes.length; i++) {
+                const node = videoNodes[i];
+                const nodeTime = getNodeTime(node);
+                if (video.currentTime >= nodeTime && video.currentTime < nodeTime + 2 && currentNodeIndex < i) {
+                    if (!node.completed) {
+                        video.pause();
+                        currentNodeIndex = i;
+                        showNodeQuestions(node);
+                        updateMarkerStatus(i, 'active');
+                        break;
+                    }
+                }
+            }
+        }
+
+        function updateMarkerStatus(nodeIndex, status) {
+            const markers = document.querySelectorAll('.node-marker');
+            markers.forEach((marker, i) => {
+                marker.classList.remove('active', 'completed');
+                if (i < nodeIndex || status === 'completed') {
+                    if (i <= nodeIndex && status === 'completed') {
+                        if (i === nodeIndex) marker.classList.add('completed');
+                    }
+                    if (i < currentNodeIndex) {
+                        marker.classList.add('completed');
+                    }
+                }
+                if (i === nodeIndex && status === 'active') {
+                    marker.classList.add('active');
+                }
+            });
+        }
+
+        function showNodeQuestions(node) {
+            currentQuestionIndex = node.questionStart;
+            renderQuestion();
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                document.getElementById('playPauseBtn').textContent = '⏸ 暂停';
+                videoOverlay.classList.add('hidden');
+            } else {
+                video.pause();
+                document.getElementById('playPauseBtn').textContent = '▶ 播放';
+            }
+        }
+
+        function seekBy(seconds) {
+            video.currentTime += seconds;
+        }
+
+        function resetVideo() {
+            video.currentTime = 0;
+            video.pause();
+            document.getElementById('playPauseBtn').textContent = '▶ 播放';
+            videoOverlay.classList.remove('hidden');
+        }
+
+        progressBarContainer.addEventListener('click', function(e) {
+            const rect = progressBarContainer.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            video.currentTime = percent * video.duration;
+        });
+
+        function startLearning() {
+            isVideoStarted = true;
+            welcomeScreen.style.display = 'none';
+            video.play();
+            document.getElementById('playPauseBtn').textContent = '⏸ 暂停';
+            videoOverlay.classList.add('hidden');
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            if (!q) return;
+
+            isAnswered = false;
+            selectedAnswers = [];
+
+            let optionsHtml = '';
+            if (q.type === 'fill') {
+                optionsHtml = `
+                    <input type="text" class="fill-input" id="fillAnswer" placeholder="请输入你的答案..." onkeypress="handleFillKeyPress(event)">
+                `;
+            } else {
+                optionsHtml = '<div class="options-list">';
+                q.options.forEach(opt => {
+                    optionsHtml += `
+                        <div class="option-item" onclick="selectOption('${opt.label}', this)">
+                            <div class="option-label">${opt.label}</div>
+                            <div class="option-text">${opt.text}</div>
+                        </div>
+                    `;
+                });
+                optionsHtml += '</div>';
+            }
+
+            questionSection.innerHTML = `
+                <div class="question-card">
+                    <div class="question-header">
+                        <div class="question-number">${q.id}</div>
+                        <div class="question-title">第 ${q.id} 题</div>
+                        <span class="question-type">${q.typeText}</span>
+                    </div>
+                    <div class="question-text">${q.question}</div>
+                    ${optionsHtml}
+                    <div class="question-actions">
+                        <button class="hint-btn" onclick="showHint()">💡 查看提示</button>
+                        <button class="submit-btn" id="submitBtn" onclick="submitAnswer()">提交答案</button>
+                    </div>
+                    <div id="hintBox" style="display: none;"></div>
+                    <div id="feedbackBox" style="display: none;"></div>
+                </div>
+            `;
+
+            questionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function selectOption(label, element) {
+            if (isAnswered) return;
+
+            const q = questions[currentQuestionIndex];
+            if (q.type === 'single' || q.type === 'fill') {
+                document.querySelectorAll('.option-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                selectedAnswers = [label];
+            } else if (q.type === 'multiple') {
+                if (element.classList.contains('selected')) {
+                    element.classList.remove('selected');
+                    selectedAnswers = selectedAnswers.filter(a => a !== label);
+                } else {
+                    element.classList.add('selected');
+                    selectedAnswers.push(label);
+                }
+            }
+        }
+
+        function handleFillKeyPress(e) {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        }
+
+        function submitAnswer() {
+            if (isAnswered) return;
+
+            const q = questions[currentQuestionIndex];
+            let userAnswer = selectedAnswers;
+
+            if (q.type === 'fill') {
+                const input = document.getElementById('fillAnswer');
+                userAnswer = input.value.trim();
+                if (!userAnswer) {
+                    alert('请输入答案');
+                    return;
+                }
+            } else {
+                if (selectedAnswers.length === 0) {
+                    alert('请选择一个答案');
+                    return;
+                }
+            }
+
+            isAnswered = true;
+            totalAnswered++;
+
+            let isCorrect = false;
+            if (q.type === 'fill') {
+                const normalizedAnswer = userAnswer.replace(/[\s，。、；：""''（）()【】\[\]]/g, '').toLowerCase();
+                isCorrect = q.correct.some(c => {
+                    const normalizedCorrect = c.replace(/[\s，。、；：""''（）()【】\[\]]/g, '').toLowerCase();
+                    return normalizedAnswer.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedAnswer);
+                });
+            } else {
+                const sortedUser = [...selectedAnswers].sort();
+                const sortedCorrect = [...q.correct].sort();
+                isCorrect = sortedUser.length === sortedCorrect.length && 
+                           sortedUser.every((val, idx) => val === sortedCorrect[idx]);
+            }
+
+            if (isCorrect) {
+                correctAnswers++;
+            }
+
+            updateStats();
+            showFeedback(isCorrect, q.hint);
+
+            if (q.type !== 'fill') {
+                document.querySelectorAll('.option-item').forEach((item, idx) => {
+                    const label = q.options[idx].label;
+                    if (q.correct.includes(label)) {
+                        item.classList.add('correct');
+                    } else if (selectedAnswers.includes(label)) {
+                        item.classList.add('wrong');
+                    }
+                });
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = '继续 →';
+            submitBtn.className = 'next-btn';
+            submitBtn.onclick = nextQuestion;
+        }
+
+        function showHint() {
+            hintUsed++;
+            updateStats();
+            const q = questions[currentQuestionIndex];
+            const hintBox = document.getElementById('hintBox');
+            hintBox.style.display = 'block';
+            hintBox.className = 'hint-box';
+            hintBox.innerHTML = `
+                <h5>💡 提示</h5>
+                <p>${q.hint}</p>
+            `;
+        }
+
+        function showFeedback(isCorrect, hint) {
+            const feedbackBox = document.getElementById('feedbackBox');
+            feedbackBox.style.display = 'block';
+            feedbackBox.className = `feedback-box ${isCorrect ? 'success' : 'error'}`;
+            feedbackBox.innerHTML = `
+                <h5>${isCorrect ? '✓ 回答正确！' : '✗ 回答有误'}</h5>
+                <p>${hint}</p>
+            `;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            const currentNode = videoNodes[currentNodeIndex];
+            if (currentNode && currentQuestionIndex > currentNode.questionEnd) {
+                completedNodes++;
+                updateMarkerStatus(currentNodeIndex, 'completed');
+                videoNodes[currentNodeIndex].completed = true;
+                updateStats();
+                questionSection.innerHTML = `
+                    <div class="question-card" style="text-align: center; padding: 40px;">
+                        <h3 style="color: var(--success-color); margin-bottom: 20px;">✦ 本节点学习完成 ✦</h3>
+                        <p style="margin-bottom: 25px; line-height: 1.8;">
+                            恭喜你完成了"${currentNode.title}"的学习！<br>
+                            继续观看视频，进入下一个学习节点。
+                        </p>
+                        <button class="start-btn" onclick="continueVideo()">继续观看视频</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentQuestionIndex >= questions.length) {
+                showResult();
+                return;
+            }
+
+            renderQuestion();
+        }
+
+        function continueVideo() {
+            video.play();
+            document.getElementById('playPauseBtn').textContent = '⏸ 暂停';
+            questionSection.innerHTML = `
+                <div class="question-card" style="text-align: center; padding: 40px;">
+                    <p style="color: var(--secondary-color); font-size: 16px;">
+                        📺 视频播放中... 请继续观看，下一个节点将有新的问题等着你！
+                    </p>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('totalCount').textContent = totalAnswered;
+            document.getElementById('nodeCount').textContent = completedNodes + '/' + videoNodes.length;
+            document.getElementById('hintCount').textContent = hintUsed;
+        }
+
+        function showResult() {
+            resultScreen.classList.add('active');
+            questionSection.style.display = 'none';
+
+            const score = Math.round((correctAnswers / questions.length) * 100);
+            document.getElementById('scoreNumber').textContent = score + '%';
+            const scoreCircle = document.getElementById('scoreCircle');
+            scoreCircle.style.setProperty('--score-percent', score + '%');
+
+            resultScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function restartLearning() {
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            totalAnswered = 0;
+            hintUsed = 0;
+            completedNodes = 0;
+            currentNodeIndex = -1;
+            selectedAnswers = [];
+            isAnswered = false;
+
+            videoNodes.forEach(node => node.completed = false);
+
+            resultScreen.classList.remove('active');
+            questionSection.style.display = 'block';
+            welcomeScreen.style.display = 'block';
+
+            resetVideo();
+            updateStats();
+            initNodeMarkers();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const aiKnowledgeBase = {
+            '狂病': '狂病是中医神志病的一种，以精神亢奋、狂躁不安、喧扰不宁、骂詈毁物、动而多怒为主要特征。《黄帝内经·灵枢·癫狂》云："狂始发，少卧不饥，自高贤也，自辨智也，自尊贵也，善骂詈，日夜不休。" 病性属阳、属实，多由痰火扰心、肝火上炎等引起。',
+            '痰火扰心': '痰火扰心证是指痰浊与火热交结，上扰心神所表现的证候。辨证要点：① 神志异常（狂躁、谵妄、失眠等）；② 痰热征象（苔黄腻、脉滑数、胸闷痰多等）；③ 热象（面红目赤、口苦、便秘等）。治疗当以清热化痰、开窍醒神为法。',
+            '涤痰汤': '涤痰汤出自《证治准绳》，组成：半夏、胆南星、橘红、枳实、茯苓、人参、石菖蒲、竹茹、甘草、生姜、大枣。功效：豁痰开窍。主治：中风痰迷心窍证，及癫狂等痰浊内闭之证。方中半夏、胆南星燥湿化痰为君；石菖蒲开窍涤痰为特色。',
+            '礞石滚痰丸': '礞石滚痰丸出自《丹溪心法附余》，组成：礞石、沉香、黄芩、大黄。功效：泻火逐痰。主治：实热老痰证。礞石甘咸质重，下气软坚，功专坠痰，为君药；大黄苦寒，荡涤实热，开痰火下行之路；黄芩苦寒，清上焦之火；沉香沉降，行气开郁，为诸药之开导。',
+            '龙齿': '龙齿为古代哺乳动物如象类、犀牛类、三趾马等的牙齿化石。性味甘、涩，凉。归心、肝经。功效：镇惊安神，平肝潜阳，收敛固涩。《本经逢原》云："龙齿入心经，镇心安魂。" 常用于惊痫癫狂、心悸怔忡、失眠多梦等症。',
+            '熊继柏': '熊继柏教授是国医大师，湖南中医药大学教授，从事中医临床六十余年，擅长内科、妇科、儿科疑难病，辨证精准，用药灵活，在中医界享有盛誉。'
+        };
+
+        function sendAIMessage(message) {
+            const input = document.getElementById('aiInput');
+            const userMessage = message || input.value.trim();
+            
+            if (!userMessage) return;
+
+            const aiMessages = document.getElementById('aiMessages');
+            
+            aiMessages.innerHTML += `
+                <div class="ai-message user">
+                    <div class="bubble">${userMessage}</div>
+                </div>
+            `;
+
+            if (!message) {
+                input.value = '';
+            }
+
+            setTimeout(() => {
+                let response = generateAIResponse(userMessage);
+                aiMessages.innerHTML += `
+                    <div class="ai-message ai">
+                        <div class="bubble">${response}</div>
+                    </div>
+                `;
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }, 600);
+
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+
+        function generateAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            for (const [key, value] of Object.entries(aiKnowledgeBase)) {
+                if (msg.includes(key.toLowerCase())) {
+                    return value;
+                }
+            }
+
+            if (msg.includes('痰火') || msg.includes('痰热')) {
+                return aiKnowledgeBase['痰火扰心'];
+            }
+            if (msg.includes('方') || msg.includes('药') || msg.includes('方剂')) {
+                return aiKnowledgeBase['涤痰汤'] + '\n\n' + aiKnowledgeBase['礞石滚痰丸'];
+            }
+            if (msg.includes('辨证') || msg.includes('诊断')) {
+                return '本案辨证要点：\n\n1. 辨病：患者以精神亢奋、狂躁扰安、喊叫痴笑为主症，符合"狂病"特征\n2. 辨证：苔薄白腻、脉滑，提示痰浊内盛；精神亢奋、彻夜不眠，提示火热内扰\n3. 综合判断：痰火扰心证\n4. 兼症：皮肤瘙痒为兼夹风邪之象';
+            }
+            if (msg.includes('治法') || msg.includes('治疗')) {
+                return '本案治法：豁痰开窍，泻火逐痰，重镇安神，祛风止痒\n\n1. 豁痰开窍：针对痰浊蒙蔽心神\n2. 泻火逐痰：针对痰火交结的病机\n3. 重镇安神：针对狂躁不寐的主症\n4. 祛风止痒：针对皮肤瘙痒的兼症\n\n体现了中医"标本兼顾"的治疗原则。';
+            }
+
+            return '这是一个很好的问题！根据这个病例，我可以为你解答关于狂病、痰火扰心证、辨证论治、方药解析等方面的问题。你也可以尝试问：\n\n• 狂病和癫病有什么区别？\n• 为什么用涤痰汤合礞石滚痰丸？\n• 龙齿在方中的作用是什么？';
+        }
+
+        function handleAIKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendAIMessage();
+            }
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>
